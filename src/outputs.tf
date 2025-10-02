@@ -44,3 +44,23 @@ output "connection_string" {
   value       = "postgresql://${module.rds.db_username}:${var.db_password}@${module.rds.db_endpoint}/${module.rds.db_name}"
   sensitive   = true
 }
+
+output "cognito_user_pool_id" {
+  description = "ID do Cognito User Pool"
+  value       = module.cognito.user_pool_id
+}
+
+output "cognito_user_pool_arn" {
+  description = "ARN do Cognito User Pool"
+  value       = module.cognito.user_pool_arn
+}
+
+output "cognito_user_pool_endpoint" {
+  description = "Endpoint do Cognito User Pool"
+  value       = module.cognito.user_pool_endpoint
+}
+
+output "cognito_app_client_id" {
+  description = "ID do App Client do Cognito"
+  value       = module.cognito.app_client_id
+}
