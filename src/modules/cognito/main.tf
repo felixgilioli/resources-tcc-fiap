@@ -38,6 +38,12 @@ resource "aws_cognito_user_pool" "main" {
   # Auto-verificação desabilitada
   auto_verified_attributes = []
 
+  lifecycle {
+    ignore_changes = [
+      schema,
+    ]
+  }
+
   tags = var.tags
 }
 
