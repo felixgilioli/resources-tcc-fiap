@@ -51,7 +51,7 @@ variable "db_password" {
 variable "instance_class" {
   description = "Classe da instância RDS"
   type        = string
-  default     = "db.t3.medium"
+  default     = "db.t3.micro"
 }
 
 variable "allocated_storage" {
@@ -63,13 +63,13 @@ variable "allocated_storage" {
 variable "max_allocated_storage" {
   description = "Armazenamento máximo em GB"
   type        = number
-  default     = 100
+  default     = 20
 }
 
 variable "backup_retention_period" {
   description = "Período de retenção de backup em dias"
   type        = number
-  default     = 7
+  default     = 1
 }
 
 variable "skip_final_snapshot" {
