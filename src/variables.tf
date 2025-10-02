@@ -93,3 +93,15 @@ variable "tags" {
     ManagedBy   = "Terraform"
   }
 }
+
+variable "cognito_user_pool_name" {
+  description = "Nome do Cognito User Pool"
+  type        = string
+  default     = "tcc-user-pool"
+}
+
+variable "cognito_app_client_name" {
+  description = "Nome do App Client do Cognito"
+  type        = string
+  default     = "tcc-app-client"
+}
