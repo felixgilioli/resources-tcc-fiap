@@ -64,3 +64,28 @@ output "cognito_app_client_id" {
   description = "ID do App Client do Cognito"
   value       = module.cognito.app_client_id
 }
+
+output "lambda_function_name" {
+  description = "Nome da função Lambda"
+  value       = module.lambda.function_name
+}
+
+output "lambda_function_arn" {
+  description = "ARN da função Lambda"
+  value       = module.lambda.function_arn
+}
+
+output "lambda_invoke_arn" {
+  description = "ARN de invocação da função Lambda"
+  value       = module.lambda.function_invoke_arn
+}
+
+output "lambda_role_arn" {
+  description = "ARN da IAM Role da Lambda"
+  value       = module.lambda.function_role_arn
+}
+
+output "lambda_log_group" {
+  description = "Nome do CloudWatch Log Group da Lambda"
+  value       = module.lambda.log_group_name
+}

@@ -68,3 +68,20 @@ module "cognito" {
 
   tags = var.tags
 }
+
+module "lambda" {
+  source = "./modules/lambda"
+
+  function_name      = var.lambda_function_name
+  runtime            = var.lambda_runtime
+  timeout            = var.lambda_timeout
+  memory_size        = var.lambda_memory_size
+  log_retention_days = var.lambda_log_retention_days
+
+  # Passar automaticamente as informações do Cognito
+  cognito_user_pool_id  = module.cognito.user_pool_id
+  cognito_user_pool_arn = module.cognito.user_pool_arn
+  cognito_client_id     = module.cognito.app_client_id
+
+  tags = var.tags
+}
