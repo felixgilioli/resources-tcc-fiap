@@ -32,6 +32,10 @@ jobs:
       - name: Execução do Terraform Validate
         run: terraform validate
         working-directory: ./src
+
+      - name: Execução do Terraform Refresh
+        run: terraform refresh
+        working-directory: ./src
       
       - name: Execução do Terraform Plan
         working-directory: ./src
