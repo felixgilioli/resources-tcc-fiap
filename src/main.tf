@@ -85,3 +85,19 @@ module "lambda" {
 
   tags = var.tags
 }
+
+module "apigateway" {
+  source = "./modules/apigateway"
+
+  api_name          = var.api_gateway_name
+  api_description   = var.api_gateway_description
+  stage_name        = var.api_gateway_stage_name
+  stage_description = var.api_gateway_stage_description
+  cors_allow_origin = var.api_gateway_cors_allow_origin
+
+  # Integração com Lambda
+  lambda_function_name = module.lambda.function_name
+  lambda_invoke_arn    = module.lambda.function_invoke_arn
+
+  tags = var.tags
+}

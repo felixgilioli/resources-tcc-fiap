@@ -135,3 +135,33 @@ variable "lambda_log_retention_days" {
   type        = number
   default     = 7
 }
+
+variable "api_gateway_name" {
+  description = "Nome da API Gateway"
+  type        = string
+  default     = "tcc-api"
+}
+
+variable "api_gateway_description" {
+  description = "Descrição da API Gateway"
+  type        = string
+  default     = "API Gateway para TCC"
+}
+
+variable "api_gateway_stage_name" {
+  description = "Nome do stage da API Gateway"
+  type        = string
+  default     = "prod"
+}
+
+variable "api_gateway_stage_description" {
+  description = "Descrição do stage da API Gateway"
+  type        = string
+  default     = "Producao"
+}
+
+variable "api_gateway_cors_allow_origin" {
+  description = "CORS Allow Origin"
+  type        = string
+  default     = "'*'"
+}
