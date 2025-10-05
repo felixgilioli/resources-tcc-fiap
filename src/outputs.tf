@@ -89,3 +89,23 @@ output "lambda_log_group" {
   description = "Nome do CloudWatch Log Group da Lambda"
   value       = module.lambda.log_group_name
 }
+
+output "api_gateway_id" {
+  description = "ID da API Gateway"
+  value       = module.apigateway.api_id
+}
+
+output "api_gateway_endpoint" {
+  description = "URL base da API Gateway"
+  value       = module.apigateway.api_endpoint
+}
+
+output "api_gateway_auth_endpoint" {
+  description = "URL completa do endpoint /auth"
+  value       = module.apigateway.auth_endpoint
+}
+
+output "api_gateway_stage" {
+  description = "Stage da API Gateway"
+  value       = module.apigateway.stage_name
+}
