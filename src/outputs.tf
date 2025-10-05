@@ -105,6 +105,11 @@ output "api_gateway_auth_endpoint" {
   value       = module.apigateway.auth_endpoint
 }
 
+output "api_gateway_fastfood_endpoint" {
+  description = "URL base do endpoint /fastfood"
+  value       = module.apigateway.fastfood_endpoint
+}
+
 output "api_gateway_stage" {
   description = "Stage da API Gateway"
   value       = module.apigateway.stage_name

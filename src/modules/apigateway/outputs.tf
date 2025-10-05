@@ -23,6 +23,11 @@ output "auth_endpoint" {
   value       = "${aws_api_gateway_stage.main.invoke_url}/auth"
 }
 
+output "fastfood_endpoint" {
+  description = "URL base do endpoint /fastfood"
+  value       = "${aws_api_gateway_stage.main.invoke_url}/fastfood"
+}
+
 output "stage_name" {
   description = "Nome do stage"
   value       = aws_api_gateway_stage.main.stage_name
