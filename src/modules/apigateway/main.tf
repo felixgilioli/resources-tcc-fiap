@@ -105,6 +105,110 @@ resource "aws_lambda_permission" "api_gateway_invoke" {
   source_arn    = "${aws_api_gateway_rest_api.main.execution_arn}/*/*"
 }
 
+# ========================================
+# Rota /fastfood/* - Proxy para EKS
+# ========================================
+
+# Resource /fastfood
+resource "aws_api_gateway_resource" "fastfood" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_rest_api.main.root_resource_id
+  path_part   = "fastfood"
+}
+
+# Resource proxy {proxy+} para capturar qualquer path após /fastfood/
+resource "aws_api_gateway_resource" "fastfood_proxy" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_resource.fastfood.id
+  path_part   = "{proxy+}"
+}
+
+# Método ANY em /fastfood/{proxy+} (aceita qualquer método HTTP)
+resource "aws_api_gateway_method" "fastfood_proxy_any" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.fastfood_proxy.id
+  http_method   = "ANY"
+  authorization = "NONE"
+
+  request_parameters = {
+    "method.request.path.proxy" = true
+  }
+}
+
+# Integração HTTP_PROXY para /fastfood/{proxy+}
+resource "aws_api_gateway_integration" "fastfood_proxy_http" {
+  rest_api_id             = aws_api_gateway_rest_api.main.id
+  resource_id             = aws_api_gateway_resource.fastfood_proxy.id
+  http_method             = aws_api_gateway_method.fastfood_proxy_any.http_method
+  type                    = "HTTP_PROXY"
+  integration_http_method = "ANY"
+  uri                     = "http://af7be7361cb0e4156882f52c80264048-5ec5431c43bfb41b.elb.us-east-1.amazonaws.com/{proxy}"
+
+  request_parameters = {
+    "integration.request.path.proxy" = "method.request.path.proxy"
+  }
+
+  cache_key_parameters = ["method.request.path.proxy"]
+}
+
+# Método OPTIONS em /fastfood/{proxy+} (para CORS)
+resource "aws_api_gateway_method" "fastfood_proxy_options" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.fastfood_proxy.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+# Integração MOCK para OPTIONS em /fastfood/{proxy+}
+resource "aws_api_gateway_integration" "fastfood_proxy_options_mock" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.fastfood_proxy.id
+  http_method = aws_api_gateway_method.fastfood_proxy_options.http_method
+  type        = "MOCK"
+
+  request_templates = {
+    "application/json" = jsonencode({
+      statusCode = 200
+    })
+  }
+}
+
+# Resposta do método OPTIONS em /fastfood/{proxy+}
+resource "aws_api_gateway_method_response" "fastfood_proxy_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.fastfood_proxy.id
+  http_method = aws_api_gateway_method.fastfood_proxy_options.http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+}
+
+# Resposta da integração OPTIONS em /fastfood/{proxy+}
+resource "aws_api_gateway_integration_response" "fastfood_proxy_options_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.fastfood_proxy.id
+  http_method = aws_api_gateway_method.fastfood_proxy_options.http_method
+  status_code = aws_api_gateway_method_response.fastfood_proxy_options_200.status_code
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,PATCH,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = var.cors_allow_origin
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.fastfood_proxy_options_mock
+  ]
+}
+
 # Deployment
 resource "aws_api_gateway_deployment" "main" {
   rest_api_id = aws_api_gateway_rest_api.main.id
@@ -116,6 +220,12 @@ resource "aws_api_gateway_deployment" "main" {
       aws_api_gateway_integration.auth_post_lambda.id,
       aws_api_gateway_method.auth_options.id,
       aws_api_gateway_integration.auth_options_mock.id,
+      aws_api_gateway_resource.fastfood.id,
+      aws_api_gateway_resource.fastfood_proxy.id,
+      aws_api_gateway_method.fastfood_proxy_any.id,
+      aws_api_gateway_integration.fastfood_proxy_http.id,
+      aws_api_gateway_method.fastfood_proxy_options.id,
+      aws_api_gateway_integration.fastfood_proxy_options_mock.id,
     ]))
   }
 
@@ -126,7 +236,10 @@ resource "aws_api_gateway_deployment" "main" {
   depends_on = [
     aws_api_gateway_integration.auth_post_lambda,
     aws_api_gateway_integration.auth_options_mock,
-    aws_api_gateway_integration_response.auth_options_integration_response
+    aws_api_gateway_integration_response.auth_options_integration_response,
+    aws_api_gateway_integration.fastfood_proxy_http,
+    aws_api_gateway_integration.fastfood_proxy_options_mock,
+    aws_api_gateway_integration_response.fastfood_proxy_options_integration_response
   ]
 }
 
