@@ -37,7 +37,9 @@ resource "aws_iam_role_policy" "cognito_access" {
         Action = [
           "cognito-idp:AdminInitiateAuth",
           "cognito-idp:AdminGetUser",
-          "cognito-idp:ListUsers"
+          "cognito-idp:ListUsers",
+          "cognito-idp:AdminSetUserPassword",
+          "cognito-idp:AdminCreateUser"
         ]
         Resource = var.cognito_user_pool_arn
       }
