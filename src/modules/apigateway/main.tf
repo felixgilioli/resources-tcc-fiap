@@ -106,6 +106,17 @@ resource "aws_lambda_permission" "api_gateway_invoke" {
 }
 
 # ========================================
+# Cognito Authorizer
+# ========================================
+
+resource "aws_api_gateway_authorizer" "cognito" {
+  name          = "cognito-authorizer"
+  type          = "COGNITO_USER_POOLS"
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  provider_arns = [var.cognito_user_pool_arn]
+}
+
+# ========================================
 # Rota /fastfood/* - Proxy para EKS
 # ========================================
 
@@ -209,6 +220,193 @@ resource "aws_api_gateway_integration_response" "fastfood_proxy_options_integrat
   ]
 }
 
+# ========================================
+# Rotas Específicas com Autenticação Cognito
+# ========================================
+
+# Resource /fastfood/v1
+resource "aws_api_gateway_resource" "fastfood_v1" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_resource.fastfood.id
+  path_part   = "v1"
+}
+
+# Resource /fastfood/v1/produto
+resource "aws_api_gateway_resource" "fastfood_v1_produto" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_resource.fastfood_v1.id
+  path_part   = "produto"
+}
+
+# Resource /fastfood/v1/produto/{id}
+resource "aws_api_gateway_resource" "fastfood_v1_produto_id" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_resource.fastfood_v1_produto.id
+  path_part   = "{id}"
+}
+
+# --------------------------------------------------
+# POST /fastfood/v1/produto (COM AUTENTICAÇÃO)
+# --------------------------------------------------
+
+resource "aws_api_gateway_method" "produto_post" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.fastfood_v1_produto.id
+  http_method   = "POST"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito.id
+}
+
+resource "aws_api_gateway_integration" "produto_post" {
+  rest_api_id             = aws_api_gateway_rest_api.main.id
+  resource_id             = aws_api_gateway_resource.fastfood_v1_produto.id
+  http_method             = aws_api_gateway_method.produto_post.http_method
+  type                    = "HTTP_PROXY"
+  integration_http_method = "POST"
+  uri                     = "http://af7be7361cb0e4156882f52c80264048-5ec5431c43bfb41b.elb.us-east-1.amazonaws.com/v1/produto"
+}
+
+# OPTIONS /fastfood/v1/produto (CORS)
+resource "aws_api_gateway_method" "produto_options" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.fastfood_v1_produto.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "produto_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.fastfood_v1_produto.id
+  http_method = aws_api_gateway_method.produto_options.http_method
+  type        = "MOCK"
+
+  request_templates = {
+    "application/json" = jsonencode({
+      statusCode = 200
+    })
+  }
+}
+
+resource "aws_api_gateway_method_response" "produto_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.fastfood_v1_produto.id
+  http_method = aws_api_gateway_method.produto_options.http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+}
+
+resource "aws_api_gateway_integration_response" "produto_options_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.fastfood_v1_produto.id
+  http_method = aws_api_gateway_method.produto_options.http_method
+  status_code = aws_api_gateway_method_response.produto_options_200.status_code
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'POST,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = var.cors_allow_origin
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.produto_options
+  ]
+}
+
+# --------------------------------------------------
+# PUT /fastfood/v1/produto/{id} (COM AUTENTICAÇÃO)
+# --------------------------------------------------
+
+resource "aws_api_gateway_method" "produto_put" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.fastfood_v1_produto_id.id
+  http_method   = "PUT"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito.id
+
+  request_parameters = {
+    "method.request.path.id" = true
+  }
+}
+
+resource "aws_api_gateway_integration" "produto_put" {
+  rest_api_id             = aws_api_gateway_rest_api.main.id
+  resource_id             = aws_api_gateway_resource.fastfood_v1_produto_id.id
+  http_method             = aws_api_gateway_method.produto_put.http_method
+  type                    = "HTTP_PROXY"
+  integration_http_method = "PUT"
+  uri                     = "http://af7be7361cb0e4156882f52c80264048-5ec5431c43bfb41b.elb.us-east-1.amazonaws.com/v1/produto/{id}"
+
+  request_parameters = {
+    "integration.request.path.id" = "method.request.path.id"
+  }
+
+  cache_key_parameters = ["method.request.path.id"]
+}
+
+# OPTIONS /fastfood/v1/produto/{id} (CORS)
+resource "aws_api_gateway_method" "produto_id_options" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.fastfood_v1_produto_id.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "produto_id_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.fastfood_v1_produto_id.id
+  http_method = aws_api_gateway_method.produto_id_options.http_method
+  type        = "MOCK"
+
+  request_templates = {
+    "application/json" = jsonencode({
+      statusCode = 200
+    })
+  }
+}
+
+resource "aws_api_gateway_method_response" "produto_id_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.fastfood_v1_produto_id.id
+  http_method = aws_api_gateway_method.produto_id_options.http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+}
+
+resource "aws_api_gateway_integration_response" "produto_id_options_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.fastfood_v1_produto_id.id
+  http_method = aws_api_gateway_method.produto_id_options.http_method
+  status_code = aws_api_gateway_method_response.produto_id_options_200.status_code
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'PUT,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = var.cors_allow_origin
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.produto_id_options
+  ]
+}
+
 # Deployment
 resource "aws_api_gateway_deployment" "main" {
   rest_api_id = aws_api_gateway_rest_api.main.id
@@ -226,6 +424,14 @@ resource "aws_api_gateway_deployment" "main" {
       aws_api_gateway_integration.fastfood_proxy_http.id,
       aws_api_gateway_method.fastfood_proxy_options.id,
       aws_api_gateway_integration.fastfood_proxy_options_mock.id,
+      aws_api_gateway_authorizer.cognito.id,
+      aws_api_gateway_resource.fastfood_v1.id,
+      aws_api_gateway_resource.fastfood_v1_produto.id,
+      aws_api_gateway_resource.fastfood_v1_produto_id.id,
+      aws_api_gateway_method.produto_post.id,
+      aws_api_gateway_integration.produto_post.id,
+      aws_api_gateway_method.produto_put.id,
+      aws_api_gateway_integration.produto_put.id,
     ]))
   }
 
@@ -239,7 +445,13 @@ resource "aws_api_gateway_deployment" "main" {
     aws_api_gateway_integration_response.auth_options_integration_response,
     aws_api_gateway_integration.fastfood_proxy_http,
     aws_api_gateway_integration.fastfood_proxy_options_mock,
-    aws_api_gateway_integration_response.fastfood_proxy_options_integration_response
+    aws_api_gateway_integration_response.fastfood_proxy_options_integration_response,
+    aws_api_gateway_integration.produto_post,
+    aws_api_gateway_integration.produto_options,
+    aws_api_gateway_integration_response.produto_options_integration_response,
+    aws_api_gateway_integration.produto_put,
+    aws_api_gateway_integration.produto_id_options,
+    aws_api_gateway_integration_response.produto_id_options_integration_response
   ]
 }
 

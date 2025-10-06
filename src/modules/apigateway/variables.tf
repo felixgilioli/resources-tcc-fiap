@@ -38,6 +38,11 @@ variable "cors_allow_origin" {
   default     = "'*'"
 }
 
+variable "cognito_user_pool_arn" {
+  description = "ARN do Cognito User Pool para autenticação"
+  type        = string
+}
+
 variable "tags" {
   description = "Tags para os recursos"
   type        = map(string)
