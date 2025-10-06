@@ -104,3 +104,12 @@ module "apigateway" {
 
   tags = var.tags
 }
+
+module "iam" {
+  source = "./modules/iam"
+
+  role_name              = "fast-food-service-role"
+  cognito_user_pool_arn  = module.cognito.user_pool_arn
+
+  tags = var.tags
+}
