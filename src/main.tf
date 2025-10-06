@@ -99,5 +99,8 @@ module "apigateway" {
   lambda_function_name = module.lambda.function_name
   lambda_invoke_arn    = module.lambda.function_invoke_arn
 
+  # Integração com Cognito
+  cognito_user_pool_arn = module.cognito.user_pool_arn
+
   tags = var.tags
 }
