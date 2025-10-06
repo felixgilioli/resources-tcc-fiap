@@ -255,6 +255,7 @@ resource "aws_api_gateway_method" "produto_post" {
   http_method   = "POST"
   authorization = "COGNITO_USER_POOLS"
   authorizer_id = aws_api_gateway_authorizer.cognito.id
+  authorization_scopes = []
 }
 
 resource "aws_api_gateway_integration" "produto_post" {
@@ -331,6 +332,7 @@ resource "aws_api_gateway_method" "produto_put" {
   http_method   = "PUT"
   authorization = "COGNITO_USER_POOLS"
   authorizer_id = aws_api_gateway_authorizer.cognito.id
+  authorization_scopes = []
 
   request_parameters = {
     "method.request.path.id" = true
