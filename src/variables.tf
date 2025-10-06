@@ -93,3 +93,75 @@ variable "tags" {
     ManagedBy   = "Terraform"
   }
 }
+
+variable "cognito_user_pool_name" {
+  description = "Nome do Cognito User Pool"
+  type        = string
+  default     = "tcc-user-pool"
+}
+
+variable "cognito_app_client_name" {
+  description = "Nome do App Client do Cognito"
+  type        = string
+  default     = "tcc-app-client"
+}
+
+variable "lambda_function_name" {
+  description = "Nome da função Lambda"
+  type        = string
+  default     = "tcc-auth-lambda"
+}
+
+variable "lambda_runtime" {
+  description = "Runtime da função Lambda"
+  type        = string
+  default     = "nodejs20.x"
+}
+
+variable "lambda_timeout" {
+  description = "Timeout da função Lambda em segundos"
+  type        = number
+  default     = 10
+}
+
+variable "lambda_memory_size" {
+  description = "Memória da função Lambda em MB"
+  type        = number
+  default     = 256
+}
+
+variable "lambda_log_retention_days" {
+  description = "Dias de retenção dos logs da Lambda"
+  type        = number
+  default     = 7
+}
+
+variable "api_gateway_name" {
+  description = "Nome da API Gateway"
+  type        = string
+  default     = "tcc-api"
+}
+
+variable "api_gateway_description" {
+  description = "Descrição da API Gateway"
+  type        = string
+  default     = "API Gateway para TCC"
+}
+
+variable "api_gateway_stage_name" {
+  description = "Nome do stage da API Gateway"
+  type        = string
+  default     = "prod"
+}
+
+variable "api_gateway_stage_description" {
+  description = "Descrição do stage da API Gateway"
+  type        = string
+  default     = "Producao"
+}
+
+variable "api_gateway_cors_allow_origin" {
+  description = "CORS Allow Origin"
+  type        = string
+  default     = "'*'"
+}

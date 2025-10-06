@@ -59,3 +59,48 @@ module "rds" {
 
   tags = var.tags
 }
+
+module "cognito" {
+  source = "./modules/cognito"
+
+  user_pool_name  = var.cognito_user_pool_name
+  app_client_name = var.cognito_app_client_name
+
+  tags = var.tags
+}
+
+module "lambda" {
+  source = "./modules/lambda"
+
+  function_name      = var.lambda_function_name
+  runtime            = var.lambda_runtime
+  timeout            = var.lambda_timeout
+  memory_size        = var.lambda_memory_size
+  log_retention_days = var.lambda_log_retention_days
+
+  # Passar automaticamente as informações do Cognito
+  cognito_user_pool_id  = module.cognito.user_pool_id
+  cognito_user_pool_arn = module.cognito.user_pool_arn
+  cognito_client_id     = module.cognito.app_client_id
+
+  tags = var.tags
+}
+
+module "apigateway" {
+  source = "./modules/apigateway"
+
+  api_name          = var.api_gateway_name
+  api_description   = var.api_gateway_description
+  stage_name        = var.api_gateway_stage_name
+  stage_description = var.api_gateway_stage_description
+  cors_allow_origin = var.api_gateway_cors_allow_origin
+
+  # Integração com Lambda
+  lambda_function_name = module.lambda.function_name
+  lambda_invoke_arn    = module.lambda.function_invoke_arn
+
+  # Integração com Cognito
+  cognito_user_pool_arn = module.cognito.user_pool_arn
+
+  tags = var.tags
+}
