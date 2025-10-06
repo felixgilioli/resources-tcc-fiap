@@ -114,3 +114,11 @@ output "api_gateway_stage" {
   description = "Stage da API Gateway"
   value       = module.apigateway.stage_name
 }
+
+output "iam_role_arn" {
+  value = module.iam.role_arn
+}
+
+output "iam_instance_profile_name" {
+  value = module.iam.instance_profile_name
+}
