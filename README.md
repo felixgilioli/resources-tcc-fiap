@@ -7,6 +7,9 @@ Este projeto utiliza o Terraform para provisionar de forma automatizada e segura
 * Provisionar banco de dados gerenciado (RDS);
 * Provisionar funções serverless (Lambda);
 * Provisionar recursos de rede (VPC, subnets, etc);
+* Configurar autenticação e autorização (Cognito);
+* Provisionar API Gateway para exposição de endpoints;
+* Gerenciar permissões IAM;
 * Armazenar o estado do Terraform em um bucket S3, garantindo versionamento e controle de mudanças na infraestrutura.
 
 O objetivo é facilitar a criação, gerenciamento e destruição de ambientes AWS para desenvolvimento, testes ou produção, promovendo consistência e reprodutibilidade na infraestrutura.
@@ -35,13 +38,28 @@ src/
       main.tf
       variables.tf
       outputs.tf
+    apigateway/          # Módulo para API Gateway e gerenciamento de rotas
+      main.tf
+      variables.tf
+      outputs.tf
+    cognito/             # Módulo para autenticação e gerenciamento de usuários
+      main.tf
+      variables.tf
+      outputs.tf
+    iam/                 # Módulo para roles e políticas IAM
+      main.tf
+      variables.tf
+      outputs.tf
 ```
 
 ### Descrição dos Módulos
 
 - **networking**: Cria a VPC, subnets públicas/privadas e security groups necessários para a comunicação segura entre os recursos.
 - **rds**: Provisiona o banco de dados gerenciado (RDS), incluindo as configurações de rede e segurança.
-- **lambda**: Provisiona as funções serverless (Lambda), configurando os gatilhos e permissões necessárias.
+- **lambda**: Configura as funções serverless Lambda para processamento da lógica de negócio da aplicação.
+- **apigateway**: Provisiona o API Gateway com recursos e métodos para exposição dos endpoints da aplicação, incluindo integração com Lambda e autenticação.
+- **cognito**: Gerencia a autenticação de usuários através do AWS Cognito User Pool, incluindo políticas de senha e configurações de segurança.
+- **iam**: Define roles, políticas e permissões IAM necessárias para que os recursos AWS possam interagir de forma segura entre si.
 
 ### Armazenamento do Estado
 
