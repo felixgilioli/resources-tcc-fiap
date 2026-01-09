@@ -60,6 +60,19 @@ module "rds" {
   tags = var.tags
 }
 
+module "documentdb" {
+  source = "./modules/documentdb"
+
+  db_username = var.db_username
+  db_password = var.db_password
+
+  vpc_id             = module.networking.vpc_id
+  subnet_ids         = module.networking.public_subnet_ids
+  security_group_ids = [module.networking.rds_security_group_id]
+
+  tags = var.tags
+}
+
 module "cognito" {
   source = "./modules/cognito"
 
