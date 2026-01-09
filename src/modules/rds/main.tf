@@ -20,7 +20,7 @@ resource "aws_db_instance" "main" {
   allocated_storage     = var.allocated_storage
   max_allocated_storage = var.max_allocated_storage
 
-  db_name  = var.db_name
+  db_name  = "fastfood"
   username = var.db_username
   password = var.db_password
   port     = 5432
@@ -65,7 +65,7 @@ resource "aws_db_instance" "pagamento" {
   allocated_storage     = aws_db_instance.main.allocated_storage
   max_allocated_storage = aws_db_instance.main.max_allocated_storage
 
-  db_name  = var.db_name
+  db_name  = "pagamento"
   username = var.db_username
   password = var.db_password
   port     = aws_db_instance.main.port
