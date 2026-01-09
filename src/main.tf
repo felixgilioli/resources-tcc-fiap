@@ -32,7 +32,7 @@ module "networking" {
   project_name = var.project_name
   vpc_cidr     = var.vpc_cidr
 
-  availability_zones = var.availability_zones
+  availability_zones  = var.availability_zones
   public_subnet_cidrs = var.public_subnet_cidrs
 
   tags = var.tags
@@ -46,8 +46,8 @@ module "rds" {
   db_username = var.db_username
   db_password = var.db_password
 
-  vpc_id             = module.networking.vpc_id
-  subnet_ids         = module.networking.public_subnet_ids
+  vpc_id     = module.networking.vpc_id
+  subnet_ids = module.networking.public_subnet_ids
   security_group_ids = [module.networking.rds_security_group_id]
 
   instance_class          = var.instance_class
@@ -56,19 +56,6 @@ module "rds" {
   backup_retention_period = var.backup_retention_period
   skip_final_snapshot     = var.skip_final_snapshot
   publicly_accessible     = var.publicly_accessible
-
-  tags = var.tags
-}
-
-module "documentdb" {
-  source = "./modules/documentdb"
-
-  db_username = var.db_username
-  db_password = var.db_password
-
-  vpc_id             = module.networking.vpc_id
-  subnet_ids         = module.networking.public_subnet_ids
-  security_group_ids = [module.networking.rds_security_group_id]
 
   tags = var.tags
 }
@@ -85,10 +72,10 @@ module "cognito" {
 module "lambda" {
   source = "./modules/lambda"
 
-  function_name      = var.lambda_function_name
-  runtime            = var.lambda_runtime
-  timeout            = var.lambda_timeout
-  memory_size        = var.lambda_memory_size
+  function_name = var.lambda_function_name
+  runtime       = var.lambda_runtime
+  timeout       = var.lambda_timeout
+  memory_size   = var.lambda_memory_size
   log_retention_days = var.lambda_log_retention_days
 
   # Passar automaticamente as informações do Cognito
@@ -110,7 +97,7 @@ module "apigateway" {
 
   # Integração com Lambda
   lambda_function_name = module.lambda.function_name
-  lambda_invoke_arn    = module.lambda.function_invoke_arn
+  lambda_invoke_arn = module.lambda.function_invoke_arn
 
   # Integração com Cognito
   cognito_user_pool_arn = module.cognito.user_pool_arn
@@ -121,8 +108,8 @@ module "apigateway" {
 module "iam" {
   source = "./modules/iam"
 
-  role_name              = "fast-food-service-role"
-  cognito_user_pool_arn  = module.cognito.user_pool_arn
+  role_name             = "fast-food-service-role"
+  cognito_user_pool_arn = module.cognito.user_pool_arn
 
   tags = var.tags
 }
