@@ -11,7 +11,7 @@ resource "aws_db_subnet_group" "main" {
   )
 }
 
-# Instância do RDS
+# Instância do RDS principal
 resource "aws_db_instance" "main" {
   identifier            = "fastfood-rds"
   engine                = "postgres"
@@ -20,7 +20,7 @@ resource "aws_db_instance" "main" {
   allocated_storage     = var.allocated_storage
   max_allocated_storage = var.max_allocated_storage
 
-  db_name  = var.db_name
+  db_name  = "fastfood"
   username = var.db_username
   password = var.db_password
   port     = 5432
@@ -52,6 +52,48 @@ resource "aws_db_instance" "main" {
     var.tags,
     {
       Name = "fastfood-postgres"
+    }
+  )
+}
+
+# Instância do RDS de pagamentos
+resource "aws_db_instance" "pagamento" {
+  identifier            = "pagamento-rds"
+  engine                = aws_db_instance.main.engine
+  engine_version        = aws_db_instance.main.engine_version
+  instance_class        = aws_db_instance.main.instance_class
+  allocated_storage     = aws_db_instance.main.allocated_storage
+  max_allocated_storage = aws_db_instance.main.max_allocated_storage
+
+  db_name  = "pagamento"
+  username = var.db_username
+  password = var.db_password
+  port     = aws_db_instance.main.port
+
+  vpc_security_group_ids = var.security_group_ids
+  db_subnet_group_name   = aws_db_subnet_group.main.name
+
+  backup_retention_period  = aws_db_instance.main.backup_retention_period
+  skip_final_snapshot      = aws_db_instance.main.skip_final_snapshot
+  final_snapshot_identifier = var.skip_final_snapshot ? null : "pagamento-rds-final-snapshot-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"
+
+  publicly_accessible = aws_db_instance.main.publicly_accessible
+  storage_encrypted   = aws_db_instance.main.storage_encrypted
+  storage_type        = aws_db_instance.main.storage_type
+  multi_az            = aws_db_instance.main.multi_az
+
+  enabled_cloudwatch_logs_exports = aws_db_instance.main.enabled_cloudwatch_logs_exports
+
+  auto_minor_version_upgrade = aws_db_instance.main.auto_minor_version_upgrade
+  maintenance_window         = aws_db_instance.main.maintenance_window
+  backup_window              = aws_db_instance.main.backup_window
+
+  deletion_protection = aws_db_instance.main.deletion_protection
+
+  tags = merge(
+    var.tags,
+    {
+      Name = "pagamento-postgres"
     }
   )
 }
